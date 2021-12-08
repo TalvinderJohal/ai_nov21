@@ -14,11 +14,19 @@ temp_high = soup.find_all('p', {'class': 'temp temp-high'})
 temp_low = soup.find_all('p', {'class': 'temp temp-low'})
 sent = soup.find_all('div', {'class': 'col-sm-10 forecast-text'})
 days = soup.find_all('p', {'period-name'})
+test_temp = temp_low
 
 week = []
 para_list = []
 temp_high_list = []
 temp_low_list = []
+
+test_temp_list = []
+for item in test_temp:
+    for subitem in item.split():
+        if(subitem.isdigit()):
+            test_temp_list.append(subitem)
+print(test_temp_list)
 
 for x in range(9):
     week.append(days[x].text)
@@ -30,11 +38,12 @@ for x in range(5):
 for x in range(4):
     temp_low_list.append(temp_low[x].text)
 
+#print(test_temp)
 
-print(week)
-print(para_list)
-print(temp_high_list)
-print(temp_low_list)
+# print(week)
+# print(para_list)
+# print(temp_high_list)
+# print(temp_low_list)
 
 
 
