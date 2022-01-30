@@ -75,4 +75,5 @@ class LogisticRegression:
         plt.xlabel('x1');
         plt.ylabel('x2');
         plt.title(title);
+        plt.show()
 
