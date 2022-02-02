@@ -3,7 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import xgboost as xgb
 
-data = pd.read_csv("/Users/talvinderjohal/Desktop/Talvinder Strive Course/insurance.csv")
+data = pd.read_csv("/Users/talvinderjohal/Desktop/Talvinder Strive Course/ai_nov21/Boosting/insurance.csv")
 
 from sklearn.preprocessing import OrdinalEncoder
 oc = OrdinalEncoder()
@@ -12,7 +12,7 @@ data[["sex", "smoker", "region"]] = oc.fit_transform(data[["sex", "smoker", "reg
 X = data.iloc[:,0:6].values
 y = data.iloc[:,6].values
 
-data_dmatrix = xgb.DMatrix(data=X, label=y)
+#data_dmatrix = xgb.DMatrix(data=X, label=y)
 
 from sklearn.model_selection import train_test_split
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size= 0.25, random_state=0)
