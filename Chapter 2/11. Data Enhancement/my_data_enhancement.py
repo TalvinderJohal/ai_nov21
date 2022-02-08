@@ -23,88 +23,62 @@ from xgboost               import XGBRegressor
 from lightgbm              import LGBMRegressor
 from catboost              import CatBoostRegressor
 
-data = pd.read_csv("/Users/talvinderjohal/Desktop/Talvinder Strive Course/ai_nov21/Chapter 2/11. Data Enhancement/data/london_merged.csv")
 
 np.random.seed(0)
 
-#target = data['cnt']
-#data = data.drop(['cnt'], axis=1)
+df = pd.read_csv("/Users/talvinderjohal/Desktop/Talvinder Strive Course/ai_nov21/Chapter 2/11. Data Enhancement/data/london_merged.csv")
+df_copy = df.copy()
 
-#Print data shape
-#print(target.shape)
-#print(data.shape)
+df_copy["timestamp"] = pd.to_datetime(df_copy["timestamp"])
 
-#Take a look at nulls 0 nulls
-#print(target.isnull().sum())
-#print(data.isnull().sum())
+df_copy["year"] = df_copy['timestamp'].dt.year
+df_copy["month"] = df_copy['timestamp'].dt.month
+df_copy["day_of_month"] = df_copy['timestamp'].dt.day
+df_copy["day_of_week"] = df_copy['timestamp'].dt.weekday
+df_copy["hour"] = df_copy['timestamp'].dt.hour
+df_copy.drop('timestamp', axis=1, inplace=True)
 
-#lets create a 2 new feautures
-# Hour time stamp contains the year and the month,
-# we will create different columns for each one
+# print(df_copy.head())
+# print(df_copy.info())
 
-data['year'] = data['timestamp'].apply(lambda row: row[:4])
-data['month'] = data['timestamp'].apply(lambda row: row.split('-')[2][:2] )
-data['hour'] = data['timestamp'].apply(lambda row: row.split(':')[0][-2:] )
-'''
-print(data['year'])
-print(data['month'])
-print(data['hour'])
-'''
-data.drop('timestamp', axis=1, inplace=True)
+def data_enhancement(df_copy):
+    new_data = df_copy
 
-#print(data.shape)
+    for code in df_copy['weather_code'].unique():
+        coded_weather =  new_data[new_data['season'] == code]
+        hum_mean = coded_weather['hum'].mean()
+        wind_speed_mean = coded_weather['wind_speed'].mean()
+        t1_mean = coded_weather['t1'].mean()
+        t2_mean = coded_weather['t2'].mean()
 
-
-def data_enhancement(data):
-    
-    gen_data = data
-    
-    for season in data['season'].unique():
-        seasonal_data =  gen_data[gen_data['season'] == season]
-        hum_std = seasonal_data['hum'].std()
-        wind_speed_std = seasonal_data['wind_speed'].std()
-        t1_std = seasonal_data['t1'].std()
-        t2_std = seasonal_data['t2'].std()
-        
-        for i in gen_data[gen_data['season'] == season].index:
+        for i in new_data[new_data["weather_code"] == code].index:
             if np.random.randint(2) == 1:
-                gen_data['hum'].values[i] += hum_std/10
+                new_data['hum'].values[i] += hum_mean/20
             else:
-                gen_data['hum'].values[i] -= hum_std/10
+                new_data['hum'].values[i] -= hum_mean/20
                 
             if np.random.randint(2) == 1:
-                gen_data['wind_speed'].values[i] += wind_speed_std/10
+                new_data['wind_speed'].values[i] += wind_speed_mean/20
             else:
-                gen_data['wind_speed'].values[i] -= wind_speed_std/10
+                new_data['wind_speed'].values[i] -= wind_speed_mean/20
                 
             if np.random.randint(2) == 1:
-                gen_data['t1'].values[i] += t1_std/10
+                new_data['t1'].values[i] += t1_mean/20
             else:
-                gen_data['t1'].values[i] -= t1_std/10
+                new_data['t1'].values[i] -= t1_mean/20
                 
             if np.random.randint(2) == 1:
-                gen_data['t2'].values[i] += t2_std/10
+                new_data['t2'].values[i] += t2_mean/20
             else:
-                gen_data['t2'].values[i] -= t2_std/10
+                new_data['t2'].values[i] -= t2_mean/20
+    return new_data
 
-    return gen_data
+# print(df_copy.head(3))
+gen = data_enhancement(df_copy)
+# print(gen.head(3) )
 
-print(data.head(3))
-gen = data_enhancement(data)
-print(gen.head(3) )
-
-#print(gen.shape)
-
-#final_data = data
-y = data['cnt']
-x = data.drop(['cnt'], axis=1)
-
-
-
-#print(data.shape)
-
-
-
+y = df_copy['cnt']
+x = df_copy.drop(['cnt'], axis=1)
 
 cat_vars = ['season','is_weekend','is_holiday','year','month','weather_code']
 num_vars = ['t1','t2','hum','wind_speed']
@@ -120,28 +94,33 @@ x_train, x_val, y_train, y_val = model_selection.train_test_split(x, y,
 extra_sample = gen.sample(gen.shape[0] // 3)
 x_train = pd.concat([x_train, extra_sample.drop(['cnt'], axis=1 ) ])
 y_train = pd.concat([y_train, extra_sample['cnt'] ])
+# print(x_train)
+# print(y_train)
 
 
 transformer = preprocessing.PowerTransformer()
 y_train = transformer.fit_transform(y_train.values.reshape(-1,1))
 y_val = transformer.transform(y_val.values.reshape(-1,1))
 
+# print(x_train)
+# print(y_val)
 
 
 rang = abs(y_train.max()) + abs(y_train.min())
+# print(rang)
 
 num_4_treeModels = pipeline.Pipeline(steps=[
     ('imputer', impute.SimpleImputer(strategy='constant', fill_value=-9999)),
 ])
 
-cat_4_treeModels = pipeline.Pipeline(steps=[
-    ('imputer', impute.SimpleImputer(strategy='constant', fill_value='missing')),
-    ('ordinal', preprocessing.OrdinalEncoder()) # handle_unknown='ignore' ONLY IN VERSION 0.24
-])
+# cat_4_treeModels = pipeline.Pipeline(steps=[
+#     ('imputer', impute.SimpleImputer(strategy='constant', fill_value='missing')),
+#     ('ordinal', preprocessing.OrdinalEncoder()) # handle_unknown='ignore' ONLY IN VERSION 0.24
+# ])
 
 tree_prepro = compose.ColumnTransformer(transformers=[
     ('num', num_4_treeModels, num_vars),
-    ('cat', cat_4_treeModels, cat_vars),
+#    ('cat', cat_4_treeModels, cat_vars),
 ], remainder='drop') # Drop other vars not specified in num_vars or cat_vars
 
 tree_classifiers = {
