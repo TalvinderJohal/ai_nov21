@@ -45,7 +45,7 @@ def data_enhancement(df_copy):
     new_data = df_copy
 
     for code in df_copy['weather_code'].unique():
-        coded_weather =  new_data[new_data['season'] == code]
+        coded_weather =  new_data[new_data['weather_code'] == code]
         hum_mean = coded_weather['hum'].mean()
         wind_speed_mean = coded_weather['wind_speed'].mean()
         t1_mean = coded_weather['t1'].mean()
