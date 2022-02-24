@@ -50,3 +50,8 @@ def to_batches(x_train, x_test, y_train, y_test, batch_size):
 
 
     return x_train, x_test, y_train, y_test
+
+# url = "/Users/talvinderjohal/Desktop/Talvinder Strive Course/ai_nov21/Chapter 3/03. MLP Regression/data/turkish_stocks.csv"
+
+# x_train, x_test, y_train, y_test = load_data(url)
+# x_train_batch, x_test_batch, y_train_batch, y_test_batch = to_batches(x_train, x_test, y_train, y_test, 10)
